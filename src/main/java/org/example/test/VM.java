@@ -229,6 +229,17 @@ public class VM {
                     ArrayObject array = new ArrayObject(elements);
                     excecutionStack.push(array);
                 }
+                case OP_LENGTH -> {
+                    Object obj = excecutionStack.pop();
+                    if (obj instanceof ArrayObject array) {
+                        excecutionStack.push(new IntegerObject(array.getElements().size()));
+                    } else if (obj instanceof StringObject str) {
+                        excecutionStack.push(new IntegerObject(str.getValue().length()));
+                    } else {
+                        throw new RuntimeException("length not supported for type");
+                    }
+                    ip++;
+                }
                 case EOF -> {
                     done = false;
                 }

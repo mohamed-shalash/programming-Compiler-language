@@ -71,12 +71,21 @@ public class Runner {
                 let x = {5:3,\"m\":5,true:"mas"};
                 let y = x[true];
                 """);*/
-        Lexer lexer = new Lexer("""
+        /*Lexer lexer = new Lexer("""
                 let x = [5,"m",3,true,"basmallah"];
                 let y = len(x[4]);
                 print("length is ",y);
+                """);*/
+        Lexer lexer = new Lexer("""
+                for x in [1, 2, 3] {
+                    print(x);
+                }
+                for x in "123" {
+                    print(x);
+                }
+                let y = 5;
                 """);
-        //todo add bin functions                     gc     closer     for      whilescopes           if scopes           continue                break             goto
+        //todo add          gc     closer     for      while scopes           if scopes           continue                break             goto
         Parser parser = new Parser(lexer);
         Program program = parser.parseProgram();
         SymbolTable symbolTable =new SymbolTable();

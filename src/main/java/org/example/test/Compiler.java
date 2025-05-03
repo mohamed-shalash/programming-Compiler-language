@@ -50,6 +50,9 @@ public class Compiler {
             }else if (expr instanceof WhileExpression whileExpr) {
                 compileWhileExpression(whileExpr);
             }
+            else if (expr instanceof ForExpression forExpr) {
+                compileForExpression(forExpr);
+            }
 
             //System.out.println("assign "+(expressionStatement.getExpression() instanceof AssignmentExpression));
             else  if (expressionStatement.getExpression() instanceof AssignmentExpression)
@@ -295,7 +298,83 @@ public class Compiler {
         updateJumpOffset(jumpIfFalsePos, exitOffset);
     }
 
+    public void compileForExpression(ForExpression expr) {
+        // 0. Define loop variable in current scope
+        String loopVarName = expr.getLoopVariable().getValue();
+        SymbolTable.Symbol loopVarSymbol = symbolTable.define(loopVarName);
 
+        // 1. Compile and store the iterable
+        compileExpression(expr.getIterable());
+        SymbolTable.Symbol iterableSymbol = symbolTable.define("#iterable");
+        stackController.writeCode(OpCodes.SET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) iterableSymbol.index());
+
+        // 2. Initialize index variable
+        SymbolTable.Symbol indexSymbol = symbolTable.define("#index");
+        stackController.writeCode(OpCodes.CONSTANT.getValue());
+        stackController.writeCode((byte) stackController.getConstants().size());
+        stackController.writeConstant(new IntegerObject(0));
+        stackController.writeCode(OpCodes.SET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) indexSymbol.index());
+
+        // 3. Loop start marker
+        int loopStart = stackController.getIndex();
+        stackController.writeCode(OpCodes.LOOP_START.getValue());
+
+        // 4. Load index and length for comparison
+        // Get current index
+        stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) indexSymbol.index());
+
+        // Get iterable length
+        stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) iterableSymbol.index());
+        stackController.writeCode(OpCodes.OP_LENGTH.getValue());
+
+        // 5. Compare index < length
+        stackController.writeCode(OpCodes.LOWER.getValue());
+
+        // 6. Conditional jump out of loop
+        int jumpIfFalsePos = stackController.getIndex();
+        stackController.writeCode(OpCodes.JUMP_IF_NOT_TRUE.getValue());
+        stackController.writeCode((byte) 0); // Placeholder offset
+
+        // 7. Load current element and assign to loop variable
+        stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) iterableSymbol.index());
+        stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) indexSymbol.index());
+        stackController.writeCode(OpCodes.OP_INDEX.getValue());
+
+        // Store in loop variable
+        stackController.writeCode(OpCodes.SET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) loopVarSymbol.index());
+
+        // 8. Compile loop body
+        compileBlockStatement(expr.getBody());
+
+        // 9. Increment index
+        stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) indexSymbol.index());
+        stackController.writeCode(OpCodes.CONSTANT.getValue());
+        stackController.writeCode((byte) stackController.getConstants().size());
+        stackController.writeConstant(new IntegerObject(1));
+        stackController.writeCode(OpCodes.ADD.getValue());
+        stackController.writeCode(OpCodes.SET_GLOBAL_VALUE.getValue());
+        stackController.writeCode((byte) indexSymbol.index());
+
+        // 10. Jump back to condition check
+        int jumpBackPos = stackController.getIndex();
+        stackController.writeCode(OpCodes.JUMP.getValue());
+        int jumpBackOffset = loopStart - (jumpBackPos + 2);
+        stackController.writeCode((byte) jumpBackOffset);
+
+        // 11. Finalize loop structure
+        int loopEndPos = stackController.getIndex();
+        stackController.writeCode(OpCodes.LOOP_END.getValue());
+        int exitOffset = loopEndPos - (jumpIfFalsePos + 2);
+        updateJumpOffset(jumpIfFalsePos, exitOffset);
+    }
     void compileInteger(IntegerLiteral integerLiteral){
         stackController.writeCode(OpCodes.CONSTANT.getValue());
         stackController.writeCode((byte) stackController.getConstants().size());
