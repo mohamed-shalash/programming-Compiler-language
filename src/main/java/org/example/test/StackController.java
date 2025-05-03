@@ -72,6 +72,18 @@ public class StackController {
         code[index] = value;
     }
 
+    public void writeBytes(byte[] bytes) {
+        int neededCapacity = index + bytes.length;
+        if (capacity < neededCapacity) {
+            while (capacity < neededCapacity) {
+                capacity = growCapacity(capacity);
+            }
+            this.code = growArray(this.code, capacity);
+        }
+
+        System.arraycopy(bytes, 0, this.code, index, bytes.length);
+        index += bytes.length;
+    }
 
     @Override
     public String toString() {
@@ -102,7 +114,7 @@ enum OpCodes{
     RETURN((byte) 0x22),
     GET_LOCAL((byte) 0x23),
     SET_LOCAL((byte) 0x24),
-    OP_HASH(  (byte) 0x25), OP_INDEX((byte) 0x1A),OP_ARRAY( (byte) 0x1B);
+    OP_HASH(  (byte) 0x25), OP_INDEX((byte) 0x1A),OP_ARRAY( (byte) 0x1B), GET_BUILTIN((byte)(0x1C) );
 
     private final byte value;
 

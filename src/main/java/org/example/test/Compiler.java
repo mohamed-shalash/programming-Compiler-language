@@ -78,6 +78,17 @@ public class Compiler {
             /*SymbolTable.Symbol symbol = symbolTable.resolve(ident.getValue());
             stackController.writeCode(OpCodes.GET_GLOBAL_VALUE.getValue());
             stackController.writeCode((byte) symbol.index());*/
+
+            String name = ident.getValue();
+
+            // Check for built-in first
+            if (VM.BUILTINS.containsKey(name)) {
+                stackController.writeCode(OpCodes.GET_BUILTIN.getValue());
+                stackController.writeCode((byte) name.length());
+                stackController.writeBytes(name.getBytes());
+                return;
+            }
+
             SymbolTable.Symbol symbol = symbolTable.resolve(ident.getValue());
             if (symbol.depth() > 0) { // Local variable/parameter
                 stackController.writeCode(OpCodes.GET_LOCAL.getValue());

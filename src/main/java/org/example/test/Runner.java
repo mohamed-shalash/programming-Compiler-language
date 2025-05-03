@@ -72,8 +72,9 @@ public class Runner {
                 let y = x[true];
                 """);*/
         Lexer lexer = new Lexer("""
-                let x = [5,"m",3,true,"bas"];
-                let y = x[15];
+                let x = [5,"m",3,true,"basmallah"];
+                let y = len(x[4]);
+                print("length is ",y);
                 """);
         //todo add bin functions                     gc     closer     for      whilescopes           if scopes           continue                break             goto
         Parser parser = new Parser(lexer);
@@ -91,7 +92,7 @@ public class Runner {
 
         vm.run();
 
-        vm.printResults();
+        //vm.printResults();
 
         vm.printResult("y",symbolTable);
         //vm.printResult("y",symbolTable);

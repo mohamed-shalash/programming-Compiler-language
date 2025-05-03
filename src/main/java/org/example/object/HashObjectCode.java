@@ -1,8 +1,13 @@
 package org.example.object;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
+@Setter
 public class HashObjectCode implements Object{
     public final Map<Object, Object> pairs;
 

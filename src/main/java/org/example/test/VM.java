@@ -3,10 +3,10 @@ package org.example.test;
 import org.example.object.*;
 
 import java.lang.Object;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
+
 import static org.example.test.OpCodes.*;
+
 
 public class VM {
     Stack<Object> excecutionStack;
@@ -15,6 +15,39 @@ public class VM {
     private List<Object> globals = new ArrayList<>();
     private Stack<Frame> callStack = new Stack<>();
 
+    protected static final Map<String, BuiltinFunction> BUILTINS = new HashMap<>();
+
+    static {
+        BUILTINS.put("len", new BuiltinFunction("len", (vm, args) -> {
+            if (args.size() != 1) throw new RuntimeException("len expects 1 argument");
+            Object arg = args.get(0);
+
+            if (arg instanceof StringObject s) {
+                return new IntegerObject(s.getValue().length());
+            }
+            if (arg instanceof ArrayObject a) {
+                return new IntegerObject(a.getElements().size());
+            }
+            if (arg instanceof HashObjectCode h) {
+                return new IntegerObject(h.getPairs().size());
+            }
+            throw new RuntimeException("Unsupported type for len");
+        }        ));
+        BUILTINS.put("print",
+                new BuiltinFunction("print", (vm, args) -> {
+                    StringBuilder output = new StringBuilder();
+                    for (Object arg : args) {
+                        if (arg instanceof org.example.object.Object obj) {
+                            output.append(obj.inspect());
+                        } else {
+                            output.append(arg);
+                        }
+                        output.append(" ");
+                    }
+                    System.out.println(output.toString().trim());
+                    return new NullObject();  // Return null object after printing
+                }));
+    }
     private static class Frame {
         int returnAddress;
         List<Object> locals;
@@ -103,23 +136,53 @@ public class VM {
                     int offset = (int) offsetByte; // Signed offset
                     ip += 2 + offset;
                 }
+                case GET_BUILTIN -> {
+                    int nameLength = Byte.toUnsignedInt(stackController.readCode(ip + 1));
+                    byte[] nameBytes = new byte[nameLength];
+                    System.arraycopy(
+                            stackController.getCode(),
+                            ip + 2,
+                            nameBytes,
+                            0,
+                            nameLength
+                    );
+                    String name = new String(nameBytes);
 
+                    BuiltinFunction builtin = BUILTINS.get(name);
+                    if (builtin == null) {
+                        throw new RuntimeException("Unknown builtin: " + name);
+                    }
+
+                    excecutionStack.push(builtin);
+                    ip += 2 + nameLength;
+                }
                 case CALL -> {
                     int argCount = Byte.toUnsignedInt(stackController.readCode(ip + 1));
                     ip += 2;
                     Object funcObj = excecutionStack.pop();
-                    if (!(funcObj instanceof FunctionObjectCode)) {
-                        throw new RuntimeException("Not a function");
+                    if (funcObj instanceof BuiltinFunction builtin) {
+                        List<Object> args = new ArrayList<>();
+                        for (int i = 0; i < argCount; i++) {
+                            args.add(0, excecutionStack.pop()); // Reverse order
+                        }
+                        try {
+                            Object results = builtin.function.execute(this, args);
+                            excecutionStack.push(results);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Builtin error: " + e.getMessage());
+                        }
                     }
-                    FunctionObjectCode func = (FunctionObjectCode) funcObj;
-                    Frame frame = new Frame();
-                    frame.returnAddress = ip;
-                    frame.locals = new ArrayList<>(argCount);
-                    for (int i = 0; i < argCount; i++) {
-                        frame.locals.add(excecutionStack.pop());
+                    else if (funcObj instanceof FunctionObjectCode func) {
+                        //FunctionObjectCode func = (FunctionObjectCode) funcObj;
+                        Frame frame = new Frame();
+                        frame.returnAddress = ip;
+                        frame.locals = new ArrayList<>(argCount);
+                        for (int i = 0; i < argCount; i++) {
+                            frame.locals.add(excecutionStack.pop());
+                        }
+                        callStack.push(frame);
+                        ip = func.codeStart;
                     }
-                    callStack.push(frame);
-                    ip = func.codeStart;
                 }
                 case OP_HASH -> {
                     int numElements = Byte.toUnsignedInt(stackController.readCode(ip + 1));
