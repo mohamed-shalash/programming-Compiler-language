@@ -39,4 +39,17 @@ public class BooleanObject implements Object,Hashable {
                 "value=" + value +
                 '}';
     }
+
+    @Override
+    public boolean equals(java.lang.Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BooleanObject that = (BooleanObject) o;
+        return value == that.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Boolean.hashCode(value);
+    }
 }

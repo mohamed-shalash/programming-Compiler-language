@@ -86,7 +86,6 @@ public class VMTest extends TestCase {
                         else if(result ==5 ){ result=5*5 }
                         else { result = 3*4 };
                         ""","result",new IntegerObject(25)),
-
                 new Testing("""
                         let result = 0;
                         let x = 6;
@@ -139,6 +138,22 @@ public class VMTest extends TestCase {
                             let add = fn(a, b) { return adder(a,b)+adders(a,b)*3; };
                             let result = add(2, 3);
                             ""","result",new IntegerObject(16)),
+                new Testing("""
+                        let x = 30;
+                        if (x == 5) {
+                             let y = 10;
+                             x = x+ y;
+                        }else if (x == 4) {
+                            let y = !"";
+                            x = y;
+                        }else if (x == 3) {
+                            let y = 200;
+                            x = y;
+                        }else {
+                            let y = 0;
+                            x = y+2;
+                        }
+                ""","x",new IntegerObject(2))
         };
         try {
             for (Testing testing : testings) {

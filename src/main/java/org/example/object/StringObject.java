@@ -1,6 +1,7 @@
 package org.example.object;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.zip.CRC32;
 
 public class StringObject  implements Object,Hashable {
@@ -37,5 +38,18 @@ public class StringObject  implements Object,Hashable {
         return "StringObject{" +
                 "value='" + value + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(java.lang.Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StringObject that = (StringObject) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }

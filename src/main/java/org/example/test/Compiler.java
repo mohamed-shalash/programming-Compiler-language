@@ -6,6 +6,7 @@ import org.example.object.FunctionObjectCode;
 import org.example.object.IntegerObject;
 import org.example.object.StringObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Compiler {
@@ -98,11 +99,35 @@ public class Compiler {
             compileExpression(logicalExpression.getRight());
             compileLogic(logicalExpression.getOperator());
         }  else if (exception instanceof FunctionLiteral functionLiteral) {
-            System.out.println(">>>>  "+functionLiteral);
+            //System.out.println(">>>>  "+functionLiteral);
             compileFunctionLiteral(functionLiteral);
         } else if (exception instanceof CallExpression callExpression) {
-            System.out.println(">>>>  "+callExpression);
+            //System.out.println(">>>>  "+callExpression);
             compileCallExpression(callExpression);
+        } else if (exception instanceof HashLiteral hashLiteral) {
+            List<Expression> keys = new ArrayList<>(hashLiteral.getPairs().keySet());
+            keys.sort((a, b) -> a.toString().compareTo(b.toString()));//sort keys
+
+            // Compile each key and its corresponding value in sorted order.
+            for (Expression key : keys) {
+                compileExpression(key);
+                compileExpression(hashLiteral.getPairs().get(key));
+            }
+            int numPairs = hashLiteral.getPairs().size();
+
+            stackController.writeCode(OpCodes.OP_HASH.getValue());
+            stackController.writeCode((byte) (numPairs * 2));
+        }  else if (exception instanceof ArrayLiteral arrayLiteral) {
+            System.out.println(">>>>  "+arrayLiteral);
+        }  else if (exception instanceof IndexExpression indexExpression) {
+            System.out.println(">>>>  "+indexExpression);
+            compileExpression(indexExpression.getLeft());
+
+            // Compile the index expression.
+            compileExpression(indexExpression.getIndex());
+
+            // Emit the opcode for indexing.
+            stackController.writeCode(OpCodes.OP_INDEX.getValue());
         }
     }
 
@@ -357,10 +382,6 @@ public class Compiler {
         stackController.writeConstant(funcObj);
         stackController.writeCode(OpCodes.CONSTANT.getValue());
         stackController.writeCode((byte) funcIndex);
-    }
-
-    private List<String> getParamNames(List<Identifier> params) {
-        return params.stream().map(Identifier::getValue).toList();
     }
 
     private void compileCallExpression(CallExpression call) {

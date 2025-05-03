@@ -74,7 +74,7 @@ public class VM {
                 case NEGATE -> {
                     Object value = excecutionStack.pop();
                     if (value instanceof IntegerObject i) {
-                        excecutionStack.push(new IntegerObject(-i.getValue()));
+                        excecutionStack.push(new IntegerObject((int) -i.getValue()));
                     }
                     ip++;
                 }
@@ -98,16 +98,12 @@ public class VM {
                         ip += 2;
                     }
                 }
-                case JUMP -> {
+                case JUMP,LOOP -> {
                     byte offsetByte = stackController.readCode(ip + 1);
                     int offset = (int) offsetByte; // Signed offset
                     ip += 2 + offset;
                 }
-                case LOOP -> {
-                    byte offsetByte = stackController.readCode(ip + 1);
-                    int offset = (int) offsetByte; // Signed offset
-                    ip += 2 + offset; // Use JUMP-like behavior
-                }
+
                 case CALL -> {
                     int argCount = Byte.toUnsignedInt(stackController.readCode(ip + 1));
                     ip += 2;
@@ -124,6 +120,34 @@ public class VM {
                     }
                     callStack.push(frame);
                     ip = func.codeStart;
+                }
+                case OP_HASH -> {
+                    int numElements = Byte.toUnsignedInt(stackController.readCode(ip + 1));
+                    ip += 2;
+                    HashObjectCode hash = new HashObjectCode();
+                    for (int i = 0; i < numElements; i += 2) {
+                        Object value = excecutionStack.pop();
+                        Object key = excecutionStack.pop();
+                        hash.put((org.example.object.Object) key, (org.example.object.Object) value);
+                    }
+                    excecutionStack.push(hash);
+                }
+                case OP_INDEX -> {
+                    Object index = excecutionStack.pop();
+                    Object collection = excecutionStack.pop();
+
+                    if (collection instanceof HashObjectCode hash) {
+                        Object value = hash.get((org.example.object.Object) index);
+                        excecutionStack.push(value != null ? value : new NullObject());
+                    } else if (collection instanceof ArrayObject array) { // Assuming ArrayObject exists
+                        System.out.println(array);
+                    } else {
+                        throw new RuntimeException("Index operation on non-indexable type");
+                    }
+                    ip++;
+                }
+                case OP_ARRAY -> {
+
                 }
                 case EOF -> {
                     done = false;
@@ -252,6 +276,7 @@ public class VM {
 
     public void printResult(String x, SymbolTable symbolTable) {
         SymbolTable.Symbol symbol = symbolTable.resolve(x);
+        System.out.println(globals.get(symbol.index()));
     }
     public Object returnResult(String x, SymbolTable symbolTable) {
         SymbolTable.Symbol symbol = symbolTable.resolve(x);

@@ -10,7 +10,7 @@ import org.example.token.Token;
 public class Runner {
     public static void main( String[] args )
     {
-        Lexer lexer = new Lexer("let x = 20-3*4; let y = x;");
+        //Lexer lexer = new Lexer("let x = 20-3*4; let y = x;");
         //Lexer lexer = new Lexer("let x = 5>3 && 7<10-1; x = x+true;");
         /*Lexer lexer = new Lexer("""
                 let x = 5+3 ; 
@@ -67,7 +67,11 @@ public class Runner {
                 let x = adder(5, 3);
                         """);*/
         //Lexer lexer = new Lexer("let x = \"mas\"==\"shalash\"; let y = x;");
-        //todo add array hashes goto continue forloop
+        Lexer lexer = new Lexer("""
+                let x = {5:3,\"m\":5,true:"mas"};
+                let y = x[true];
+                """);
+        //todo add bin functions                     gc     closer            array                map       whilescopes           if scopes           continue                break             goto
         Parser parser = new Parser(lexer);
         Program program = parser.parseProgram();
         SymbolTable symbolTable =new SymbolTable();
@@ -85,7 +89,7 @@ public class Runner {
 
         vm.printResults();
 
-        vm.printResult("x",symbolTable);
+        vm.printResult("y",symbolTable);
         //vm.printResult("y",symbolTable);
 
         func((a,b)->a+b/2);

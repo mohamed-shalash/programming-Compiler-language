@@ -102,7 +102,7 @@ enum OpCodes{
     RETURN((byte) 0x22),
     GET_LOCAL((byte) 0x23),
     SET_LOCAL((byte) 0x24),
-    ;
+    OP_HASH(  (byte) 0x25), OP_INDEX((byte) 0x1A),OP_ARRAY( (byte) 0x1B);
 
     private final byte value;
 

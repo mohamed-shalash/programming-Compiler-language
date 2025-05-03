@@ -3,7 +3,7 @@ package org.example.object;
 public class NullObject implements Object {
     public static final NullObject NULL = new NullObject();
 
-    private NullObject() {} // Private constructor for singleton
+    public NullObject() {} // Private constructor for singleton
 
     @Override
     public ObjectType type() {

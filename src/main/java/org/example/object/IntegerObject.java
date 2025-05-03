@@ -36,4 +36,15 @@ public class IntegerObject implements Object, Hashable {
         return Long.toString(value);
     }
 
+    @Override
+    public boolean equals(java.lang.Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IntegerObject that = (IntegerObject) o;
+        return value == that.value;
+    }
+    @Override
+    public int hashCode() {
+        return Integer.hashCode((int) value);
+    }
 }
