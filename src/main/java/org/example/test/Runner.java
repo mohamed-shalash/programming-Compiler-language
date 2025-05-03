@@ -67,11 +67,15 @@ public class Runner {
                 let x = adder(5, 3);
                         """);*/
         //Lexer lexer = new Lexer("let x = \"mas\"==\"shalash\"; let y = x;");
-        Lexer lexer = new Lexer("""
+        /*Lexer lexer = new Lexer("""
                 let x = {5:3,\"m\":5,true:"mas"};
                 let y = x[true];
+                """);*/
+        Lexer lexer = new Lexer("""
+                let x = [5,"m",3,true,"bas"];
+                let y = x[15];
                 """);
-        //todo add bin functions                     gc     closer            array                map       whilescopes           if scopes           continue                break             goto
+        //todo add bin functions                     gc     closer     for      whilescopes           if scopes           continue                break             goto
         Parser parser = new Parser(lexer);
         Program program = parser.parseProgram();
         SymbolTable symbolTable =new SymbolTable();

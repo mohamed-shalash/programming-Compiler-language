@@ -4,10 +4,8 @@ import junit.framework.TestCase;
 import org.example.ast.IfElseIfExpression;
 import org.example.ast.Program;
 import org.example.lexer.Lexer;
-import org.example.object.BooleanObject;
-import org.example.object.IntegerObject;
+import org.example.object.*;
 import org.example.object.Object;
-import org.example.object.StringObject;
 import org.example.parser.Parser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -54,8 +52,7 @@ public class VMTest extends TestCase {
         else if(myresult instanceof BooleanObject){
             BooleanObject result = (BooleanObject) globals.get(symbol.index());
             assertEquals(((BooleanObject) myresult).getValue(), result.getValue());
-        }
-        else{
+        }  else{
             Assertions.fail("result should be an IntegerObject");
         }
     }
@@ -153,7 +150,25 @@ public class VMTest extends TestCase {
                             let y = 0;
                             x = y+2;
                         }
-                ""","x",new IntegerObject(2))
+                ""","x",new IntegerObject(2)),
+                new Testing("""
+                         let x = {5:3,"m":5,true:"mas"};
+                         let y = x[true];
+                        ""","y",new StringObject("mas")),
+                new Testing("""
+                         let x = [5,"m",3,true,"bas"];
+                         let y = x[0];
+                        ""","y",new IntegerObject(5)),
+                new Testing("""
+                         let x = [5,"m",3,true,"bas"];
+                         let y = x[4];
+                        ""","y",new StringObject("bas")),
+                new Testing("""
+                          let x = {5:3,"m":5,true:"mas"};
+                         let y = x["m"];
+                        ""","y",   new IntegerObject(5))
+
+
         };
         try {
             for (Testing testing : testings) {

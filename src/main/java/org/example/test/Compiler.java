@@ -118,9 +118,14 @@ public class Compiler {
             stackController.writeCode(OpCodes.OP_HASH.getValue());
             stackController.writeCode((byte) (numPairs * 2));
         }  else if (exception instanceof ArrayLiteral arrayLiteral) {
-            System.out.println(">>>>  "+arrayLiteral);
+            for (Expression element : arrayLiteral.getElements()) {
+                compileExpression(element);
+            }
+            int numElements = arrayLiteral.getElements().size();
+
+            stackController.writeCode(OpCodes.OP_ARRAY.getValue());
+            stackController.writeCode((byte) numElements);
         }  else if (exception instanceof IndexExpression indexExpression) {
-            System.out.println(">>>>  "+indexExpression);
             compileExpression(indexExpression.getLeft());
 
             // Compile the index expression.

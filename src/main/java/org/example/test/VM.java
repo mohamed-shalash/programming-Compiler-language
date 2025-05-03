@@ -140,14 +140,31 @@ public class VM {
                         Object value = hash.get((org.example.object.Object) index);
                         excecutionStack.push(value != null ? value : new NullObject());
                     } else if (collection instanceof ArrayObject array) { // Assuming ArrayObject exists
-                        System.out.println(array);
+                        if (index instanceof IntegerObject i) {
+                            int idx = (int) i.getValue();
+                            if (idx < 0 || idx >= array.getElements().size()) {
+                                excecutionStack.push(new NullObject());
+                            } else {
+                                excecutionStack.push(array.getElements().get(idx));
+                            }
+                        } else {
+                            excecutionStack.push(new NullObject());
+                        }
                     } else {
                         throw new RuntimeException("Index operation on non-indexable type");
                     }
                     ip++;
                 }
                 case OP_ARRAY -> {
+                    int numElements = Byte.toUnsignedInt(stackController.readCode(ip + 1));
+                    ip += 2;
+                    List<org.example.object.Object> elements  = new ArrayList<>();
 
+                    for (int i = 0; i < numElements; i++) {
+                        elements.add(0,(org.example.object.Object) excecutionStack.pop());
+                    }
+                    ArrayObject array = new ArrayObject(elements);
+                    excecutionStack.push(array);
                 }
                 case EOF -> {
                     done = false;
